@@ -12,5 +12,9 @@
     "backend"
   ],
   "author": "ajmat",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.0.3",
+    "prettier": "^3.2.5"
+  }
 }
