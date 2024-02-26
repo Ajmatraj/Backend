@@ -33,4 +33,4 @@ import userRouter from './routes/user.routes.js';
 app.use("/api/v1/users", userRouter);
 
 // Exporting the Express application instance
-export default { app }
+export default app;
