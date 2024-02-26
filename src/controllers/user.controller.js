@@ -18,7 +18,7 @@ const registerUser = asyncHandler(async (req, res) => {
 
         //get user details from frontend
     const {fullName,email,Username,password} = req.body
-    console.log("email: ", email);
+    // console.log("email: ", email);
 
     //validation - not empty?
     if (
@@ -40,7 +40,12 @@ const registerUser = asyncHandler(async (req, res) => {
 
     //check for images, check for avatar
     const avatarLocalPath = req.files?.avatar[0]?.path;
-    const coverImagePath = req.files?.coverImage[0]?.path;
+    // const coverImagePath = req.files?.coverImage[0]?.path;
+
+    let coverImageLocationPath;
+    if (req.files && Array(req.files.coverImage) && req.files.coverImage.length > 0){
+        coverImageLocationPath = req.files.coverImage[0].path
+    }
 
     if (!avatarLocalPath){
         throw new ApiError(400, "Avatar is required")
@@ -50,10 +55,7 @@ const registerUser = asyncHandler(async (req, res) => {
     const avatar = await uploadOnCloudinary(avatarLocalPath)
     const coverImage = await uploadOnCloudinary(coverImagePath)
 
-    let coverImageLocationPath;
-    if (req.files && Array(req.files.coverImage) && req.files.coverImage.length > 0){
-        coverImageLocationPath = req.files.coverImage[0].path
-    }
+    
    
 
     if (!avatar){
