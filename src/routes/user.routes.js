@@ -19,4 +19,8 @@ router.route("/register").post(
     registerUser
     )
 
+// Test route
+router.route("/test").get((req, res) => {
+    res.send("Test route response"); // Respond with a simple message
+});
 export default router
