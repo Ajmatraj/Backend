@@ -2,23 +2,19 @@ import dotenv from 'dotenv';
 import connectDB from './db/index.js';
 import app from './app.js';
 
-
-dotenv.config({
-    path: './env'
-});
+dotenv.config({ path: './env' });
 
 connectDB()
     .then(() => {
-        //TypeError: app.listen is not a function
-        app.listen(process.env.PORT || 8000, () => {
-            console.log(`⚙️ Server is running at port : ${process.env.PORT}`);
-        })
-
-        
+        // Ensuring app is an instance of Express
+        if (app && typeof app.listen === 'function') {
+            app.listen(process.env.PORT || 8000, () => {
+                console.log(`⚙️ Server is running at port : ${process.env.PORT}`);
+            });
+        } else {
+            console.log("Error: `app.listen` is not a function, check the app initialization.");
+        }
     })
     .catch((err) => {
-        console.log("MONGO db connection failed !!! ", err);
-    })
-
-    
-    // export default {app};
+        console.log("MongoDB connection failed:", err);
+    });

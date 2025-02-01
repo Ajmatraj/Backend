@@ -81,4 +81,29 @@ const registerUser = asyncHandler(async (req, res) => {
     
 });
 
-export { registerUser };
+
+
+const getUserDetails = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id).select("-password -refreshToken");
+
+    if (!user) {
+        throw new ApiError(404, "User not found");
+    }
+
+    return res.status(200).json(new ApiResponse(200, user, "User details retrieved successfully"));
+});
+
+// Controller to get details of all users
+const getAllUsers = asyncHandler(async (req, res) => {
+    const users = await User.find().select("-password -refreshToken"); // Excluding password and refreshToken
+
+    if (!users || users.length === 0) {
+        throw new ApiError(404, "No users found");
+    }
+
+    return res.status(200).json(new ApiResponse(200, users, "All users retrieved successfully"));
+});
+
+
+
+export { registerUser, getUserDetails, getAllUsers };
