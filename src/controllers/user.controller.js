@@ -5,6 +5,7 @@ import { User } from "../models/user.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { z } from "zod";
 
+
 // Method for register
 
 // Schema for user registration validation
@@ -13,7 +14,12 @@ const registerSchema = z.object({
     email: z.string().email("Invalid email address"),
     username: z.string().min(4, "Username must be at least 4 characters long"),
     password: z.string().min(6, "Password must be at least 6 characters long"),
-    avatar: z.instanceof(Object).optional(), // Optional avatar field
+    role: z.string(),
+    avatar: z.instanceof(Object).refine((val) => {
+        return val ? val.mimetype.startsWith("image/") : true;
+    }, {
+        message: "Avatar must be an image file",
+    }).optional(),
 });
 
 const registerUser = asyncHandler(async (req, res) => {
@@ -21,48 +27,50 @@ const registerUser = asyncHandler(async (req, res) => {
     let validated;
     try {
         validated = registerSchema.parse(req.body);
-        const { name, email, username, password } = validated;
-    console.log(name, email, username, password);
+        const { name, email,role, username, password } = validated;
+        console.log(name, email, username, password);
 
-    // Check if user already exists
-    const existingUser = await User.findOne({
-        $or: [{ username: username.toLowerCase() }, { email: email.toLowerCase() }],
-    });
+        // Check if user already exists
+        const existingUser = await User.findOne({
+            $or: [{ username: username.toLowerCase() }, { email: email.toLowerCase() }],
+        });
 
-    if (existingUser) {
-        throw new ApiError(409, "User with email or username already exists!");
-    }
-
-    // Check if avatar is present and upload to Cloudinary
-    let avatarUrl = '';
-    if (req.files?.avatar) {
-        const avatarLocalPath = req.files.avatar.tempFilePath || req.files.avatar[0]?.path; // Depending on file upload method
-        const avatar = await uploadOnCloudinary(avatarLocalPath);
-
-        if (avatar) {
-            avatarUrl = avatar.url;
+        if (existingUser) {
+            throw new ApiError(409, "User with email or username already exists!");
         }
-    }
 
-    // Create user object - create entry in DB
-    const user = await User.create({
-        name,
-        avatar: avatarUrl,
-        email,
-        password,
-        username: username.toLowerCase(),
-    });
+      
+        // Check if avatar is present and upload to Cloudinary
+        let avatarUrl = '';
+        if (req.files?.avatar) {
+            const avatarLocalPath = req.files.avatar.tempFilePath || req.files.avatar[0]?.path; // Depending on file upload method
+            const avatar = await uploadOnCloudinary(avatarLocalPath);
 
-    // Remove password and refreshToken fields from the response
-    const createdUser = await User.findById(user._id).select("-password -refreshToken");
+            if (avatar) {
+                avatarUrl = avatar.url;
+            }
+        }
 
-    // Check for user creation
-    if (!createdUser) {
-        throw new ApiError(500, "Something went wrong, User is not registered");
-    }
+        // Create user object - create entry in DB
+        const user = await User.create({
+            name,
+            avatar: avatarUrl,
+            email,
+            role,
+            password,
+            username: username.toLowerCase(),
+        });
 
-    // Return response
-    return res.status(201).json(new ApiResponse(200, createdUser, "User registered successfully"));
+        // Remove password and refreshToken fields from the response
+        const createdUser = await User.findById(user._id).select("-password -refreshToken");
+
+        // Check for user creation
+        if (!createdUser) {
+            throw new ApiError(500, "Something went wrong, User is not registered");
+        }
+
+        // Return response
+        return res.status(201).json(new ApiResponse(200, createdUser, "User registered successfully"));
     } catch (error) {
         if (error instanceof z.ZodError) {
             // Send validation errors in the response
@@ -77,14 +85,13 @@ const registerUser = asyncHandler(async (req, res) => {
         }
         throw error; // Re-throw unexpected errors
     }
-
-    
 });
 
-
-
+// Method for getting user details (using token or user ID)
 const getUserDetails = asyncHandler(async (req, res) => {
-    const user = await User.findById(req.params.id).select("-password -refreshToken");
+    const userId = req.userId;  // Assuming you've decoded the JWT and added userId to the request
+
+    const user = await User.findById(userId).select("-password -refreshToken");
 
     if (!user) {
         throw new ApiError(404, "User not found");
@@ -93,9 +100,15 @@ const getUserDetails = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, user, "User details retrieved successfully"));
 });
 
-// Controller to get details of all users
+// Controller to get details of all users with pagination
 const getAllUsers = asyncHandler(async (req, res) => {
-    const users = await User.find().select("-password -refreshToken"); // Excluding password and refreshToken
+    const { page = 1, limit = 10 } = req.query;
+    
+    // Pagination
+    const users = await User.find()
+        .select("-password -refreshToken")
+        .skip((page - 1) * limit)
+        .limit(limit);
 
     if (!users || users.length === 0) {
         throw new ApiError(404, "No users found");
@@ -103,7 +116,5 @@ const getAllUsers = asyncHandler(async (req, res) => {
 
     return res.status(200).json(new ApiResponse(200, users, "All users retrieved successfully"));
 });
-
-
 
 export { registerUser, getUserDetails, getAllUsers };

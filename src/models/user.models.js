@@ -1,106 +1,104 @@
-import mongoose, { Schema } from "mongoose";
-import Jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
-import { DB_NAME } from '../constants.js';
+import mongoose, { Schema } from 'mongoose';
+import Jwt from 'jsonwebtoken';
+import bcrypt from 'bcrypt';
 
-// Enum for user roles
-const userRole = {
-    USER: "user",
-    RIDER: "rider",
-    FUELSTATION: "fuelstation"
-}
+// Define user roles as a frozen object
+const userRole = Object.freeze({
+    USER: 'user',
+    RIDER: 'rider',
+    FUELSTATION: 'fuelstation'
+});
+
+// Set constant for bcrypt salt rounds
+const SALT_ROUNDS = 10;
+
+const vehicleSchema = new Schema({
+    vehicleType: { type: String, enum: ['Bike', 'Car', 'Van', 'Truck'], required: true }, 
+    brand: { type: String, required: true },
+    model: { type: String, required: true },
+    licensePlate: { type: String, required: true, unique: true, uppercase: true, trim: true },
+    year: { type: Number, min: 1990, max: new Date().getFullYear() },
+    color: { type: String }
+}, { _id: false }); // _id is false to prevent creating a separate object ID for vehicle
+
 
 const userSchema = new Schema({
-    username: {
+    username: { type: String, required: true, unique: true, lowercase: true, trim: true, index: true },
+    email: { type: String, required: true, unique: true, trim: true, index: true, match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address'] },
+    name: { type: String, required: true, trim: true, index: true },
+    avatar: { type: String },
+    password: { type: String, required: [true, 'Password is required'] },
+    refreshToken: { type: String },
+    role: { type: String, enum: Object.values(userRole), default: userRole.USER },
+    status:{
         type: String,
-        required: true,
-        unique: true,
-        lowercase: true,
-        trim: true,
-        index: true
+        enum: ["Active","inActive"],
+        default: "Active"
     },
-    email: {
-        type: String,
-        required: true,
-        trim: true,
-        index: true,
-        match: [/^\S+@\S+\.\S+$/, 'Please use a valid email address'], // Email format validation
+    vehicleInfo: {
+        type: vehicleSchema,
+        required: function () { return this.role === userRole.RIDER; } // Only required for riders
     },
-    name: {
-        type: String,
-        required: true,
-        trim: true,
-        index: true
+    orders:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"Order"
+    }],
+    ratingGiven:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"Rating"
+    }],
+    ratingRecived:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"Rating"
+    }],
+    createdAt:{
+        type: Date,
+        default:Date.now
     },
-    avatar: {
-        type: String,  // Cloudinary URL
-    },
-    password: {
-        type: String,
-        required: [true, 'Password is required']
-    },
-    refreshToken: {
-        type: String
-    },
-    role: {
-        type: String,
-        enum: Object.values(userRole), // Predefined roles
-        default: userRole.USER // Default to USER role
-    }
-
+    location:[{
+        type: mongoose.Schema.Types.ObjectId,
+        ref:"Location"
+    }]
 }, { timestamps: true });
 
 // Hash password before saving if modified
-userSchema.pre("save", async function (next) {
-    if (!this.isModified("password")) return next();
+userSchema.pre('save', async function(next) {
+    if (!this.isModified('password')) return next();
 
     try {
-        this.password = await bcrypt.hash(this.password, 10);
+        this.password = await bcrypt.hash(this.password, SALT_ROUNDS);
         next();
     } catch (error) {
-        next(error); // Pass the error to the next middleware
+        return next(new Error('Error hashing password: ' + error.message));
     }
 });
 
-// Method to check password correctness
-userSchema.methods.isPasswordCorrect = async function (password) {
+// Check password correctness
+userSchema.methods.isPasswordCorrect = async function(password) {
     return await bcrypt.compare(password, this.password);
 };
 
-// Method to generate an access token
-userSchema.methods.generateAccessToken = function () {
+// Generate access token
+userSchema.methods.generateAccessToken = function() {
     if (!process.env.JWT_SECRET) {
-        throw new Error("JWT_SECRET is not defined in environment variables");
+        throw new Error('JWT_SECRET is not defined in environment variables');
     }
 
     return Jwt.sign(
-        {
-            _id: this._id,
-            email: this.email,
-            username: this.username,
-            avatar: this.avatar,
-            name: this.name
-        },
-        process.env.JWT_SECRET, 
-        {
-            expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '1h' // Default expiry of 1 hour
-        }
+        { _id: this._id, email: this.email, username: this.username, avatar: this.avatar, name: this.name, role: this.role },
+        process.env.JWT_SECRET,
+        { expiresIn: process.env.ACCESS_TOKEN_EXPIRY || '1h' }
     );
 };
 
-// Method to generate a refresh token
-userSchema.methods.generateRefreshToken = function () {
+// Generate refresh token
+userSchema.methods.generateRefreshToken = function() {
     if (!process.env.REFRESH_TOKEN_SECRET) {
-        throw new Error("REFRESH_TOKEN_SECRET is not defined in environment variables");
+        throw new Error('REFRESH_TOKEN_SECRET is not defined in environment variables');
     }
 
-    return Jwt.sign(
-        { _id: this._id },
-        process.env.REFRESH_TOKEN_SECRET, 
-        {
-            expiresIn: process.env.REFRESH_TOKEN_EXPIRY || '7d' // Default expiry of 7 days
-        }
-    );
+    return Jwt.sign({ _id: this._id }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRY || '7d' });
 };
 
-export const User = mongoose.model("User", userSchema);
+// Export the model
+export const User = mongoose.model('User', userSchema);

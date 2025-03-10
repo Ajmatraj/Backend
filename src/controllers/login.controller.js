@@ -3,6 +3,18 @@ import { ApiError } from "../utils/ApiErrors.js";
 import { User } from "../models/user.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 
+// Function to prepare user details
+const getUserDetails = (user) => {
+    return {
+        id: user.id,
+        username: user.username,
+        name: user.name,
+        email: user.email,
+        avatar: user.avatar,
+        role: user.role,
+    };
+};
+
 // Method for login
 const loginUser = asyncHandler(async (req, res) => {
     const { email, password } = req.body;
@@ -11,6 +23,8 @@ const loginUser = asyncHandler(async (req, res) => {
     if (!email || !password) {
         throw new ApiError(400, "Email and password are required");
     }
+
+    console.log(email,password)
 
     // Find the user by email (ensure email is in lowercase)
     const user = await User.findOne({ email: email.toLowerCase() });
@@ -28,25 +42,29 @@ const loginUser = asyncHandler(async (req, res) => {
     }
 
     // Generate access and refresh tokens
-    const accessToken = user.generateAccessToken();  // You can add expiry like `accessTokenExpiresIn: "15m"`
-    const refreshToken = user.generateRefreshToken();  // You can add expiry like `refreshTokenExpiresIn: "7d"`
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
 
-    // Optionally store refreshToken in the database for future invalidation
-    // user.refreshToken = refreshToken;
-    // await user.save();
+    // Store refresh token in DB (optional but recommended)
+    user.refreshToken = refreshToken;
+    await user.save({ validateBeforeSave: false });
 
-    // Extract user role from the database
-    const userRole = user.role;
+    // Set refresh token as HTTP-only cookie
+    res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,        // Prevents client-side JS access
+        secure: process.env.NODE_ENV === "production", // Only HTTPS in production
+        sameSite: "Strict",    // Prevents CSRF attacks
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    });
 
-    // Log the successful login event (for debugging, remove in production)
-    if (process.env.NODE_ENV === "development") {
-        console.log(`User logged in: ${user.username}, Role: ${userRole}`);
-    }
+    // Get user details
+    const userDetails = getUserDetails(user);
 
-    // Return the response with tokens and user role
+    // Send response with accessToken (but not refreshToken)
     return res.status(200).json(
-        new ApiResponse(200, { accessToken, refreshToken, role: userRole }, "User logged in successfully")
+        new ApiResponse(200, { accessToken, role: user.role , userDetails }, "User logged in successfully")
     );
 });
+
 
 export { loginUser };

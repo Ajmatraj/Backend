@@ -4,33 +4,30 @@ const app = express();
 
 import cors from "cors"; // Cross-Origin Resource Sharing middleware
 import cookieParser from "cookie-parser"; // Cookie parsing middleware
- // Express.js framework
- 
-// Creating an Express application instance
 
 // CORS middleware setup
 app.use(cors({
     origin: process.env.CORS_ORIGIN, // Allow requests from this origin
     credentials: true // Allow credentials (cookies, authorization headers)
-}))
+}));
 
 // Express configuration
-// Parsing incoming JSON requests (with a limit of 16kb)
-app.use(express.json({ limit: "16kb" }));
-// Parsing incoming URL-encoded requests (with a limit of 16kb)
-app.use(express.urlencoded({ extended: true, limit: "16kb" }));
-// Serving static files from the 'public' directory
-app.use(express.static("public"));
+app.use(express.json({ limit: "16kb" })); // Parsing incoming JSON requests (with a limit of 16kb)
+app.use(express.urlencoded({ extended: true, limit: "16kb" })); // Parsing incoming URL-encoded requests (with a limit of 16kb)
+app.use(express.static("public")); // Serving static files from the 'public' directory
 
 // Cookie parsing middleware
 app.use(cookieParser());
 
-
-//route import
+// Route imports
 import userRouter from './routes/user.routes.js';
+import FuelStationRouter from './routes/fuelStation.routes.js';
+import FuelTypeRouter from './routes/fueltype.routes.js';
 
-//routes decleration
-app.use("/api/v1/users", userRouter);
+// Routes declaration
+app.use("/api/v1/users", userRouter); // Routes related to users
+app.use('/api/v1/fuelstations', FuelStationRouter); // Routes related to fuel stations
+app.use('/api/v1/fueltypes', FuelTypeRouter); // Routes related to fuel types
 
 // Exporting the Express application instance
 export default app;
