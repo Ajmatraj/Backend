@@ -39,27 +39,31 @@ const userSchema = new Schema({
         type: vehicleSchema,
         required: function () { return this.role === userRole.RIDER; } // Only required for riders
     },
-    orders:[{
-        type: mongoose.Schema.Types.ObjectId,
-        ref:"Order"
-    }],
+    orders: [{ type: mongoose.Schema.Types.ObjectId, ref: "Order" }]  // ✅ Add this line
+    ,
     ratingGiven:[{
         type: mongoose.Schema.Types.ObjectId,
         ref:"Rating"
     }],
-    ratingRecived:[{
+    ratingReceived: {
         type: mongoose.Schema.Types.ObjectId,
-        ref:"Rating"
-    }],
+        ref: 'Rating',  // Make sure 'Rating' is the correct model name
+    },
     createdAt:{
         type: Date,
         default:Date.now
     },
-    location:[{
+    location:{
         type: mongoose.Schema.Types.ObjectId,
         ref:"Location"
-    }]
-}, { timestamps: true });
+    },
+    FuelStation: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "FuelStation", // Reference to the FuelStation model
+        required: false // Ensure this is optional if not every user has a fuel station
+    },
+    
+}, { timestamps: true});
 
 // Hash password before saving if modified
 userSchema.pre('save', async function(next) {

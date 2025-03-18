@@ -2,23 +2,22 @@ import mongoose from "mongoose";
 
 const ratingSchema = new mongoose.Schema(
     {
-        user:{
+        user: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
             required: true,
-            index:true,
+            index: true,
         },
-        driver:{
-            true: mongoose.Schema.Types.ObjectId,
+        driver: {
+            type: mongoose.Schema.Types.ObjectId,  // ✅ Fixed 'true:' to 'type:'
             ref: "User",
             required: true,
-            index:true,
+            index: true,
         },
-        order:{
-            true: mongoose.Schema.Types.ObjectId,
+        order: {
+            type: mongoose.Schema.Types.ObjectId,  // ✅ Fixed 'true:' to 'type:'
             ref: "Order",
             required: true,
-            unique:true,
         },
         rating: {
             type: Number,
@@ -30,16 +29,16 @@ const ratingSchema = new mongoose.Schema(
                 message: "Rating must be an integer between 1 and 5"
             }
         },
-        feedback:{
+        feedback: {
             type: String,
-            trim:true,
+            trim: true,
         },
-        date:{
-            type:Date,
-            default: Date.now
+        date: {
+            type: Date,
+            default: Date.now,
         },
     },
-    {timestamps:true}
-)
+    { timestamps: true }
+);
 
-export const Rating = mongoose.model("Rating", ratingSchema)
+export const Rating = mongoose.model("Rating", ratingSchema);

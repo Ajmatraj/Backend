@@ -1,82 +1,35 @@
-import { compare } from "bcrypt";
 import mongoose from "mongoose";
-import { string } from "zod";
-
-
-const orderItemSchema = new mongoose.Schema({
-    productId:{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "Product"
-    },
-    quantity:{
-        type:Number,
-        required: true
-    }
-})
-
-
 const addressSchema = new mongoose.Schema({
-    latitude:{
-        type: Number,
-        required:true
-    },
-    longitude:{
-        type: Number,
-        required:true
-    },
-})
+    latitude: { type: Number },
+    longitude: { type: Number },
+    address: { type: String }  // Optionally store a human-readable address
+});
 
 const orderSchema = new mongoose.Schema(
     {
-        user:{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
-        },
-        orderItems:{
-            type: [orderItemSchema],
-            default:[],
-        },
-        address:{
+        user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+        status: {
             type: String,
-            required: true
+            enum: ["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"],
+            default: "PENDING"
         },
-        status:{
+        driver: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+        station: { type: mongoose.Schema.Types.ObjectId, ref: "FuelStation", required: true },
+        fuelType: { type: String, enum: ["petrol", "diesel", "gas"], required: true },
+        quantity: { type: Number, required: true },
+        totalCost: { type: Number, required: true },
+        phone: {
             type: String,
-            enum:["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"],
-            default: "PENDING"  
-        },
-        driver:{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User"
-        },
-        station:{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "FuelStation",
-            required: true
-        },
-        fuelType:{
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "FuelType",
-            required: true
-        },
-        quantity:{
-            type: Number,
             required: true,
+            minlength: 10,
+            maxlength: 15,
+            match: [/^\+?[1-9]\d{1,14}$/, "Please provide a valid phone number"],
         },
-        totalCost:{
-            type: Number,
-            required: true
-        },
-        deliveryAddress:{
-            type: [addressSchema]
-        },
-        orderDate:{
-            type: Date,
-            default: Date.now
-        },
-
+        deliveryAddress: addressSchema,  // Optionally store both
+        orderDate: { type: Date, default: Date.now }
     },
-    {timestamps:true}
-)
+    { timestamps: true }
+);
 
-export const Order = mongoose.model("Order", orderSchema)
+
+export const Order = mongoose.model("Order", orderSchema);

@@ -23,11 +23,13 @@ app.use(cookieParser());
 import userRouter from './routes/user.routes.js';
 import FuelStationRouter from './routes/fuelStation.routes.js';
 import FuelTypeRouter from './routes/fueltype.routes.js';
+import orderRouter from './routes/order.routes.js';
 
 // Routes declaration
 app.use("/api/v1/users", userRouter); // Routes related to users
 app.use('/api/v1/fuelstations', FuelStationRouter); // Routes related to fuel stations
 app.use('/api/v1/fueltypes', FuelTypeRouter); // Routes related to fuel types
+app.use('/api/v1/orders', orderRouter); // Routes related to fuel types
 
 // Exporting the Express application instance
 export default app;

@@ -14,6 +14,11 @@ const FuelTypeSchema = new mongoose.Schema(
             required:true,
             min:0,
         },
+        qunitity:{
+            type:Number,
+            required:true,
+            min:0,
+        }
        
     }
     ,{timestamps:true})
