@@ -14,10 +14,10 @@ const FuelTypeSchema = new mongoose.Schema(
             required:true,
             min:0,
         },
-        qunitity:{
-            type:Number,
-            required:true,
-            min:0,
+        quantity: {  // ✅ Fixed the typo here
+            type: Number,
+            required: true,
+            min: 0,
         }
        
     }

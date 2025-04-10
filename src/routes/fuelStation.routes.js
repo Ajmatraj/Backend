@@ -4,6 +4,7 @@ import {
     getAllFuelStations,
     getFuelStationByUserID,
     getStationByID,
+    deletelFuelStatinById,
 } from "../controllers/fuelStationController.js";  // Import necessary controller functions
 
 const router = Router();
@@ -20,6 +21,7 @@ router.get("/stationbyid/:id", getStationByID);
 //get fuel statioin by userid.
 router.get("/:id", getFuelStationByUserID);
 
-
+// delete fuel station by id.
+router.delete("/deletelFuelStatinById/:id", deletelFuelStatinById)
 
 export default router;

@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { 
-    fuelType, 
+    createFuelType, 
     getAllFuelTypes,    // Added function for getting all fuel types
     getFuelTypeById,    // Added function for getting fuel type by ID
     updatedFuelType      // Added function for updating fuel type by ID
@@ -9,7 +9,7 @@ import {
 const router = Router();
 
 // Route for creating a new fuel type
-router.post("/FuelTypes", fuelType); // Updated to be consistent with other routes
+router.post("/createFuelType", createFuelType); // Updated to be consistent with other routes
 
 // Route for getting all fuel types
 router.get("/FuelTypes", getAllFuelTypes); // Endpoint for getting all fuel types

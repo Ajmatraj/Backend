@@ -210,6 +210,29 @@ const getStationByID = asyncHandler(async (req, res, next) => {
 });
 
 
+//delete deletelFuelStatin By Id.
+const deletelFuelStatinById = asyncHandler(async(req, res)=>{
+    const {id} = req.params;
+
+     // Validate user ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        console.log('Invalid station ID format:', id);
+        return res.status(400).json({ error: 'Invalid station ID format' });
+        }
+
+    const deletedStation = await FuelStation.findByIdAndDelete(id);
+
+    if(!deletedStation){
+        throw new ApiError(404, "Fuel Station not found")
+
+    }
+
+    return res.status(200).json(new ApiResponse (200, null, "fuel Station deleted successfully"));
 
 
-export {getStationByID, registerFuelStation, getAllFuelStations ,getFuelStationByUserID};
+})
+
+
+
+
+export {getStationByID, registerFuelStation, getAllFuelStations ,getFuelStationByUserID, deletelFuelStatinById};

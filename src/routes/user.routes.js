@@ -2,7 +2,7 @@ import { Router } from "express";
 import { registerUser } from "../controllers/user.controller.js"; // Import registerUser function
 import { loginUser } from "../controllers/login.controller.js"; // Import loginUser function
 import { assigningRole } from "../controllers/role.controller.js"; // Import the assigningRole controller
-import { updateUserDetails,getUserDetailsById, getAllUsersfilters ,getAllUsers} from "../controllers/user.controller.js"; // Import getUserDetails function
+import { updateUserDetails,getUserDetailsById, getAllUsersfilters ,getAllUsers, deleteUserById} from "../controllers/user.controller.js"; // Import getUserDetails function
 
 const router = Router();
 
@@ -25,5 +25,8 @@ router.get("/userbyid/:id", getUserDetailsById);
 router.get("/filterUsers", getAllUsersfilters);
 
 router.get("/allUsers", getAllUsers);
+
+// delete user by id 
+router.delete("/deleteUserById/:id", deleteUserById);
 
 export default router;

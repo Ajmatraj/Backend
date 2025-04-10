@@ -196,80 +196,7 @@ const getAllUsers = asyncHandler(async (req, res) => {
 });
 
 
-
-// const updateUserDetails = asyncHandler(async (req, res) => {
-//     try {
-//         const { id } = req.params;  // Get user ID from the URL parameters
-//         const { name, email, username, avatar, role } = req.body || {};  // Ensure req.body is always an object
-
-//         // Validate if the provided ID is a valid MongoDB ObjectId
-//         if (!mongoose.Types.ObjectId.isValid(id)) {
-//             return res.status(400).json({ error: "Invalid user ID format" });
-//         }
-
-//         // Ensure email and username are properly formatted (avoid calling toLowerCase() on undefined)
-//         const formattedUsername = username ? username.toLowerCase() : undefined;
-//         const formattedEmail = email ? email.toLowerCase() : undefined;
-
-//         // Check if the email or username is already in use by another user (excluding the current user)
-//         if (formattedUsername || formattedEmail) {
-//             const existingUser = await User.findOne({
-//                 $or: [
-//                     { username: formattedUsername },
-//                     { email: formattedEmail }
-//                 ],
-//                 _id: { $ne: id }  // Exclude the current user
-//             });
-//             if (existingUser) {
-//                 return res.status(400).json({ error: "Username or email already in use" });
-//             }
-//         }
-
-//         // Check if avatar is present and upload to Cloudinary
-//         const avatarUrl = req.body.avatar || (req.files?.avatar && await uploadOnCloudinary(req.files.avatar.tempFilePath));
-//         // let avatarUrl = undefined;
-//         if (req.files?.avatar) {
-//             const avatarLocalPath = req.files.avatar.tempFilePath || req.files.avatar[0]?.path; // Get the uploaded file path
-//             console.log("Uploading file:", avatarLocalPath);  // Debugging line to confirm file path
-            
-//             // Upload to Cloudinary
-//             const avatarUpload = await uploadOnCloudinary(avatarLocalPath);
-//             if (avatarUpload) {
-//                 avatarUrl = avatarUpload.url;  // Use the uploaded avatar URL
-//             } else {
-//                 return res.status(500).json({ error: 'Error uploading avatar to Cloudinary' });
-//             }
-
-//             console.log(avatarUpload)
-//         }
-
-//         // Update user details in the database
-//         const updatedUser = await User.findByIdAndUpdate(
-//             id,
-//             {
-//                 name: name ?? undefined,
-//                 email: formattedEmail ?? undefined,
-//                 username: formattedUsername ?? undefined,
-//                 role: role ?? undefined,
-//                 avatar: avatarUrl || undefined
-//             },
-//             { new: true }  // Return the updated user
-//         ).select("-password -refreshToken");  // Exclude sensitive fields like password and refreshToken
-
-//         // If no user is found to update, throw an error
-//         if (!updatedUser) {
-//             throw new ApiError(404, "User not found");
-//         }
-
-//         // Return the updated user details
-//         return res.status(200).json(new ApiResponse(200, updatedUser, "User details updated successfully"));
-//     } catch (error) {
-//         console.error("Error updating user details:", error);
-//         res.status(500).json({ error: "Internal Server Error" });
-//     }
-// });
-
-
+// update users details.
 const updateUserDetails = async (req, res) => {
     try {
       const { id } = req.params; // Get user ID from the URL params
@@ -352,12 +279,27 @@ const updateUserDetails = async (req, res) => {
     }
   };
   
-  
+// detel user by user id.
+const deleteUserById = asyncHandler(async (req, res) => {
+    const { id } = req.params;
 
-export default updateUserDetails;
+    // Validate user ID format
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        console.log('Invalid user ID format:', id);
+        return res.status(400).json({ error: 'Invalid user ID format' });
+      }
+
+    // Find and delete the user
+    const deletedUser = await User.findByIdAndDelete(id);
+
+    // If user not found, return error
+    if (!deletedUser) {
+        throw new ApiError(404, "User not found");
+    }
+
+    return res.status(200).json(new ApiResponse(200, null, "User deleted successfully"));
+});
 
 
 
-
-
-export {updateUserDetails, registerUser, getUserDetailsById, getAllUsersfilters ,getAllUsers};
+export {updateUserDetails, registerUser, getUserDetailsById, getAllUsersfilters ,getAllUsers, deleteUserById};

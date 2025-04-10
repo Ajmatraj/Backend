@@ -10,7 +10,7 @@ const orderSchema = new mongoose.Schema(
         user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
         status: {
             type: String,
-            enum: ["PENDING", "IN_PROGRESS", "COMPLETED", "CANCELLED"],
+            enum: ["PENDING", "PROCESSING", "COMPLETED", "CANCELLED"],
             default: "PENDING"
         },
         driver: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
