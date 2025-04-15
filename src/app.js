@@ -31,5 +31,25 @@ app.use('/api/v1/fuelstations', FuelStationRouter); // Routes related to fuel st
 app.use('/api/v1/fueltypes', FuelTypeRouter); // Routes related to fuel types
 app.use('/api/v1/orders', orderRouter); // Routes related to fuel types
 
+
+import http from 'http';
+import { Server } from 'socket.io';
+
+const server = http.createServer();
+const io = new Server(server);
+
+// Socket connection
+io.on('connection', (socket) => {
+    console.log('A user connected:', socket.id);
+
+    // Listen for 'chat' event
+    socket.on('chat', (payload) => {
+        console.log("Received payload:", payload);
+        io.emit('chat', payload);
+    });
+});
+
+
+
 // Exporting the Express application instance
-export default app;
+export {app, server}; // Exporting the server and socket.io instance for use in other modules
