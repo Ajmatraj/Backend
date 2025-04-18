@@ -1,54 +1,35 @@
-import dotenv from 'dotenv';
-import connectDB from './db/index.js';
-<<<<<<< HEAD
-import { app, server } from './app.js';
+// Importing required modules
+import express from 'express';
+const app = express();
 
-// Load environment variables from .env file
-dotenv.config({ path: './.env' });
+import cors from "cors"; // Cross-Origin Resource Sharing middleware
+import cookieParser from "cookie-parser"; // Cookie parsing middleware
 
-// Validate essential environment variables
-if (!process.env.PORT || !process.env.SOCKET_PORT) {
-    console.error("❌ Missing essential environment variables. Please check your .env file.");
-    process.exit(1);
-}
+// CORS middleware setup
+app.use(cors({
+    origin: process.env.CORS_ORIGIN, // Allow requests from this origin
+    credentials: true // Allow credentials (cookies, authorization headers)
+}));
 
-// Define ports with fallback defaults
-const PORT = process.env.PORT || 8000;
-const SOCKET_PORT = process.env.SOCKET_PORT || 8001;
+// Express configuration
+app.use(express.json({ limit: "16kb" })); // Parsing incoming JSON requests (with a limit of 16kb)
+app.use(express.urlencoded({ extended: true, limit: "16kb" })); // Parsing incoming URL-encoded requests (with a limit of 16kb)
+app.use(express.static("public")); // Serving static files from the 'public' directory
 
-// Connect to the database and start servers
-connectDB()
-    .then(() => {
-        // Start API server
-        app.listen(PORT, () => {
-            console.log(`⚙️ API Server is running at port: ${PORT}`);
-        });
+// Cookie parsing middleware
+app.use(cookieParser());
 
-        // Start Socket.IO server
-        server.listen(SOCKET_PORT, () => {
-            console.log(`🔌 Socket.IO Server is running at port: ${SOCKET_PORT}`);
-        });
-    })
-    .catch((err) => {
-        console.error("❌ MongoDB connection failed:", err);
-        process.exit(1);
-=======
-import app from './app.js';
+// Route imports
+import userRouter from './routes/user.routes.js';
+import FuelStationRouter from './routes/fuelStation.routes.js';
+import FuelTypeRouter from './routes/fueltype.routes.js';
+import orderRouter from './routes/order.routes.js';
 
-dotenv.config({ path: './env' });
+// Routes declaration
+app.use("/api/v1/users", userRouter); // Routes related to users
+app.use('/api/v1/fuelstations', FuelStationRouter); // Routes related to fuel stations
+app.use('/api/v1/fueltypes', FuelTypeRouter); // Routes related to fuel types
+app.use('/api/v1/orders', orderRouter); // Routes related to fuel types
 
-connectDB()
-    .then(() => {
-        // Ensuring app is an instance of Express
-        if (app && typeof app.listen === 'function') {
-            app.listen(process.env.PORT || 8000, () => {
-                console.log(`⚙️ Server is running at port : ${process.env.PORT}`);
-            });
-        } else {
-            console.log("Error: `app.listen` is not a function, check the app initialization.");
-        }
-    })
-    .catch((err) => {
-        console.log("MongoDB connection failed:", err);
->>>>>>> origin/ajmat
-    });
+// Exporting the Express application instance
+export default app;
