@@ -175,4 +175,45 @@ const updateOrderStatus = asyncHandler(async (req, res, next) => {
     res.status(200).json(new ApiResponse(200, order, "Order status updated successfully"));
 });
 
-export { placeOrder, getuserOrders,getFuelStationOrders ,getOrderByOrderId, getAllOrders, updateOrderStatus};
+// delete order by order id
+const deleteOrder = asyncHandler(async (req, res, next) => {  
+    const { id } = req.params; // Order ID from request params
+
+    // Validate if the provided ID is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return next(new ApiError(400, "Invalid order ID format"));
+    }
+
+    // Find and delete the order by ID
+    const order = await Order.findByIdAndDelete(id);
+    if (!order) {
+        return next(new ApiError(404, "Order not found"));
+    }
+
+    res.status(200).json(new ApiResponse(200, null, "Order deleted successfully"));
+});
+
+//cancel order by order id
+const cancelOrder = asyncHandler(async (req, res, next) => {  
+    const { id } = req.params; // Order ID from request params
+
+    // Validate if the provided ID is a valid MongoDB ObjectId
+    if (!mongoose.Types.ObjectId.isValid(id)) {
+        return next(new ApiError(400, "Invalid order ID format"));
+    }
+
+    // Find the order by ID
+    const order = await Order.findById(id);
+    if (!order) {
+        return next(new ApiError(404, "Order not found"));
+    }
+
+    // Update the order status to CANCELLED
+    order.status = "CANCELLED";
+    await order.save();
+
+    res.status(200).json(new ApiResponse(200, order, "Order cancelled successfully"));
+});
+
+
+export { placeOrder, getuserOrders,getFuelStationOrders ,getOrderByOrderId, getAllOrders, updateOrderStatus,deleteOrder,cancelOrder};

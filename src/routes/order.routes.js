@@ -1,5 +1,9 @@
 import { Router } from "express";
+<<<<<<< HEAD
 import { placeOrder,getuserOrders,getFuelStationOrders ,getOrderByOrderId, getAllOrders, updateOrderStatus} from "../controllers/order.controller.js"; 
+=======
+import { placeOrder,getuserOrders,getFuelStationOrders ,getOrderByOrderId, getAllOrders,deleteOrder,cancelOrder,updateOrderStatus} from "../controllers/order.controller.js"; 
+>>>>>>> origin/ajmat
 
 const router = Router();
 
@@ -21,4 +25,14 @@ router.get("/getAllOrders",getAllOrders );
 // update order status by order id
 router.put("/updateOrderStatus/:id", updateOrderStatus);
 
+<<<<<<< HEAD
+=======
+//delete order by order id
+router.delete("/deleteOrder/:id", deleteOrder);
+
+// cancel order by order id
+router.put("/cancelOrder/:id", cancelOrder);
+
+
+>>>>>>> origin/ajmat
 export default router;
