@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { placeOrder,getuserOrders,getFuelStationOrders ,getOrderByOrderId, getAllOrders, updateOrderStatus} from "../controllers/order.controller.js"; 
+import { placeOrder,getuserOrders,getFuelStationOrders ,getOrderByOrderId, getAllOrders,deleteOrder,cancelOrder,updateOrderStatus} from "../controllers/order.controller.js"; 
 
 const router = Router();
 
@@ -20,5 +20,12 @@ router.get("/getAllOrders",getAllOrders );
 
 // update order status by order id
 router.put("/updateOrderStatus/:id", updateOrderStatus);
+
+//delete order by order id
+router.delete("/deleteOrder/:id", deleteOrder);
+
+// cancel order by order id
+router.put("/cancelOrder/:id", cancelOrder);
+
 
 export default router;
