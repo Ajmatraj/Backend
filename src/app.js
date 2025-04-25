@@ -4,6 +4,7 @@ const app = express();
 
 import cors from "cors"; // Cross-Origin Resource Sharing middleware
 import cookieParser from "cookie-parser"; // Cookie parsing middleware
+import fileUpload from "express-fileupload"
 
 // CORS middleware setup
 app.use(cors({
@@ -15,7 +16,10 @@ app.use(cors({
 app.use(express.json({ limit: "16kb" })); // Parsing incoming JSON requests (with a limit of 16kb)
 app.use(express.urlencoded({ extended: true, limit: "16kb" })); // Parsing incoming URL-encoded requests (with a limit of 16kb)
 app.use(express.static("public")); // Serving static files from the 'public' directory
-
+app.use(fileUpload({
+  useTempFiles: true,
+  tempFileDir: "/tmp/",
+}))
 // Cookie parsing middleware
 app.use(cookieParser());
 

@@ -196,28 +196,26 @@ const getAllUsers = asyncHandler(async (req, res) => {
 });
 
 
-// update users details.
+// Update user details
 const updateUserDetails = async (req, res) => {
     try {
-      const { id } = req.params; // Get user ID from the URL params
-      const { name, email, username,avatar,role } = req.body; // Extract other details from the request body
+      const { id } = req.params;
+      const { name, email, username, role } = req.body;
   
-      console.log('Received user update request:', { id, name, email, username,avatar});
+      console.log('Received user update request:', { id, name, email, username });
   
-      // Validate user ID format
       if (!mongoose.Types.ObjectId.isValid(id)) {
         console.log('Invalid user ID format:', id);
         return res.status(400).json({ error: 'Invalid user ID format' });
       }
   
-      // Format username and email (if provided)
       const formattedUsername = username ? username.toLowerCase() : undefined;
       const formattedEmail = email ? email.toLowerCase() : undefined;
   
-      // Check if username or email is already taken by another user (excluding the current user)
+      // Check if username or email already exists for other users
       const existingUser = await User.findOne({
         $or: [{ username: formattedUsername }, { email: formattedEmail }],
-        _id: { $ne: id }, // Exclude the current user
+        _id: { $ne: id },
       });
   
       if (existingUser) {
@@ -225,31 +223,19 @@ const updateUserDetails = async (req, res) => {
         return res.status(400).json({ error: 'Username or email already in use' });
       }
   
-      // Handle avatar upload to Cloudinary if an avatar file is provided
-      let avatarUrl;
+      let avatarUrl = undefined;
+      console.log(req.files?.avatar)
       if (req.files?.avatar) {
         const avatarLocalPath = req.files.avatar.tempFilePath || req.files.avatar[0]?.path;
+        const uploadResult = await uploadOnCloudinary(avatarLocalPath);
   
-        console.log('Uploading avatar file:', avatarLocalPath);
-  
-        // Validate file type
-        const allowedTypes = ['image/jpeg', 'image/png'];
-        if (!allowedTypes.includes(req.files.avatar.mimetype)) {
-          return res.status(400).json({ error: 'Invalid avatar file type' });
-        }
-  
-        // Upload avatar to Cloudinary
-        const avatarUpload = await uploadOnCloudinary(avatarLocalPath);
-        if (avatarUpload) {
-          avatarUrl = avatarUpload.url;
-          console.log('Avatar uploaded successfully:', avatarUrl);
-        } else {
-          console.log('Failed to upload avatar');
-          return res.status(400).json({ error: 'Failed to upload avatar' });
+        if (uploadResult) {
+          avatarUrl = uploadResult.url;
+          console.log(avatarUrl)
+          console.log(uploadResult.secure_url);
         }
       }
   
-      // Update the user details in the database
       const updatedUser = await User.findByIdAndUpdate(
         id,
         {
@@ -259,20 +245,20 @@ const updateUserDetails = async (req, res) => {
           role: role || undefined,
           avatar: avatarUrl || undefined,
         },
-        { new: true } // Return the updated user
-      ).select('-password -refreshToken'); // Exclude sensitive fields like password and refreshToken
+        { new: true }
+      ).select("-password -refreshToken");
   
       if (!updatedUser) {
         console.log('User not found:', id);
         return res.status(404).json({ error: 'User not found' });
       }
   
-      // Return the updated user details
       console.log('User details updated successfully:', updatedUser);
       return res.status(200).json({
         message: 'User details updated successfully',
         data: updatedUser,
       });
+  
     } catch (error) {
       console.error('Error updating user:', error);
       return res.status(500).json({ error: 'Internal server error' });

@@ -10,27 +10,30 @@ cloudinary.config({
 
 // Function to upload files to Cloudinary
 const uploadOnCloudinary = async (localFilePath) => {
-    try {
-        if (!localFilePath) return null;  // Ensure the file path is provided
+  try {
+    if (!localFilePath) return null;
 
-        // Upload the file to Cloudinary
-        const response = await cloudinary.uploader.upload(localFilePath, {
-            resource_type: "auto"  // Automatically detect resource type (image, video, etc.)
-        });
+    // Upload the file to Cloudinary
+    const response = await cloudinary.uploader.upload(localFilePath, {
+      resource_type: "auto",
+    });
 
-        console.log("File uploaded to Cloudinary:", response.secure_url);  // Log the URL
-        fs.unlinkSync(localFilePath);  // Clean up the local file
-        return response.secure_url;  // Return the URL of the uploaded image
-    } catch (error) {
-        console.error("Error uploading to Cloudinary:", error);  // Log any errors
-        if (localFilePath) fs.unlinkSync(localFilePath);  // Delete the local file if upload fails
-        return null;  // Return null if the upload failed
-    }
-}
+    console.log("File uploaded to Cloudinary:", response.secure_url);
 
-// Example for uploading from a URL
-cloudinary.uploader.upload("https://upload.wikimedia.org/wikipedia/commons/a/ae/Olympic_flag.jpg",
-  { public_id: "olympic_flag" },
-  function(error, result) { console.log(result); });  // Log the result from Cloudinary
+    // Delete local file after successful upload
+    fs.unlinkSync(localFilePath);
+
+    // Return both URL and public_id
+    return {
+      url: response.secure_url,
+      public_id: response.public_id,
+    };
+  } catch (error) {
+    console.error("Error uploading to Cloudinary:", error);
+    // Remove local file if upload fails
+    if (fs.existsSync(localFilePath)) fs.unlinkSync(localFilePath);
+    return null;
+  }
+};
 
 export { uploadOnCloudinary };

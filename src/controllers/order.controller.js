@@ -194,26 +194,71 @@ const deleteOrder = asyncHandler(async (req, res, next) => {
 });
 
 //cancel order by order id
-const cancelOrder = asyncHandler(async (req, res, next) => {  
-    const { id } = req.params; // Order ID from request params
+// const cancelOrder = asyncHandler(async (req, res, next) => {  
+//     const { id } = req.params; // Order ID from request params
 
-    // Validate if the provided ID is a valid MongoDB ObjectId
-    if (!mongoose.Types.ObjectId.isValid(id)) {
+//     // Validate if the provided ID is a valid MongoDB ObjectId
+//     if (!mongoose.Types.ObjectId.isValid(id)) {
+//         return next(new ApiError(400, "Invalid order ID format"));
+//     }
+
+//     // Find the order by ID
+//     const order = await Order.findById(id);
+//     if (!order) {
+//         return next(new ApiError(404, "Order not found"));
+//     }
+
+//     // Update the order status to CANCELLED
+//     order.status = "CANCELLED";
+//     await order.save();
+
+//       // Only send necessary fields
+//       const responseData = {
+//         _id: order._id,
+//         status: order.status,
+//         updatedAt: order.updatedAt,
+//     };
+
+//     res.status(200).json(new ApiResponse(200, order, "Order cancelled successfully"));
+// });
+
+const cancelOrder = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+  
+      // Debugging incoming ID
+      console.log("Cancelling order with ID:", id);
+  
+      if (!mongoose.Types.ObjectId.isValid(id)) {
+        console.error("Invalid order ID format");
         return next(new ApiError(400, "Invalid order ID format"));
-    }
-
-    // Find the order by ID
-    const order = await Order.findById(id);
-    if (!order) {
+      }
+  
+      const order = await Order.findById(id);
+      if (!order) {
+        console.error(" Order not found");
         return next(new ApiError(404, "Order not found"));
+      }
+  
+      order.status = "CANCELLED";
+      await order.save();
+  
+      // Debug updated status
+      console.log(" Order cancelled:", { id: order._id, status: order.status });
+  
+      const responseData = {
+        _id: order._id,
+        status: order.status,
+        updatedAt: order.updatedAt,
+      };
+  
+      res.status(200).json(new ApiResponse(200, responseData, "Order cancelled successfully"));
+    } catch (error) {
+      console.error(" Error in cancelOrder:", error);
+      return next(new ApiError(500, "Failed to cancel order"));
     }
-
-    // Update the order status to CANCELLED
-    order.status = "CANCELLED";
-    await order.save();
-
-    res.status(200).json(new ApiResponse(200, order, "Order cancelled successfully"));
-});
+  };
+  
 
 
 export { placeOrder, getuserOrders,getFuelStationOrders ,getOrderByOrderId, getAllOrders, updateOrderStatus,deleteOrder,cancelOrder};
